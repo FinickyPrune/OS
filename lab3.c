@@ -20,7 +20,10 @@
           fclose(file);
       }
  
-      seteuid(getuid());
+      if(seteuid(getuid()) == -1)
+      {
+        perror("Can't set this id.");
+      }
  
         // int setuid(uid_t uid) присваивает эффективному id пользователя процесса uid.
         // В данном случае аргументом является реальный id пользователя процесса.

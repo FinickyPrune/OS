@@ -10,7 +10,10 @@
     time_t now;
     struct tm *struct_pointer;
 
-    putenv ("TZ=America/Los_Angeles");
+    if (putenv("TZ=America/Los_Angeles"))
+    {
+        perror("Not enough memory.");
+    };
     
     // функция  int putenv(char*) кладет указатель на строку в extern char** environ.
     // проверить, какие часовые пояса поддерживаются ОС можно в каталоге /usr/share/lib/zoneinfo/ 
@@ -25,6 +28,11 @@
     // 2) Корректировка временного пояса происходит перед генерацией строки.
     struct_pointer = localtime(&now);
     
+    if (struct_pointer == NULL)
+    {
+        perror("Can't print info.");
+    }
+
     // struct tm* localtime(time_t clock) 
     // 1) вызывает void tzset(void), которая в свою очередь по информации в TZ переписывает внешние переменные
     // 2) также tzset инициализирует tzname[]
