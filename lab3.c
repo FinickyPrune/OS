@@ -2,6 +2,8 @@
    #include <unistd.h>
    #include <stdio.h>
   
+  #define IDERROR -1
+
    int main(int argc, char *argv[])
    {
        FILE *file;
@@ -20,7 +22,10 @@
           fclose(file);
       }
  
-      if(seteuid(getuid()) == -1)
+      int id_check;
+      id_check = seteuid(getuid());
+      
+      if(id_check == IDERROR)
       {
         perror("Can't set this id.");
       }
