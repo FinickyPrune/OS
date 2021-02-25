@@ -1,3 +1,4 @@
+#include <sys/types.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -90,7 +91,7 @@ void getLines(node* head, char* line)
 	{
 		// extern FILE* stdin - стандартный поток ввода.
 		// char* fgets(char* s, int n, FILE* stream) считывает из stream в s, пока не считает n-1 символ или не повстречает символ начала строки. 
-		// Затем к строке добавляется нулевой символ.
+		// Затем к строке добавляется нулевой символ
 
 		if (line[0] == '.')
 		{
