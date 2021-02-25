@@ -89,7 +89,8 @@ void getLines(node* head, char* line)
 	while ((fgets_check = fgets(line, BUFSIZ + 1, stdin)) != NULL)
 	{
 		// extern FILE* stdin - стандартный поток ввода.
-		// char* fgets(char* s, int n, FILE* stream) считывает из stream в s, пока не считает n-1 символ или не повстречает символ начала строки. Затем к строке добавляется нулевой символ
+		// char* fgets(char* s, int n, FILE* stream) считывает из stream в s, пока не считает n-1 символ или не повстречает символ начала строки. 
+		// Затем к строке добавляется нулевой символ.
 
 		if (line[0] == '.')
 		{
