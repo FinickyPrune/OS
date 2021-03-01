@@ -126,7 +126,13 @@ int getLines(int file_descriptor, size_t* line_lengths, size_t* file_offsets, in
                 return GET_LINE_ERROR;
             }
 
+            int write_check = 0;
             write(STDOUT_FILENO, line, line_lengths[line_number]);
+            if (write_check == WRITE_ERROR)
+            {
+                perror("Can't print line");
+                return GET_LINE_ERROR;
+            }
         }
         printf("\n");  
     }
