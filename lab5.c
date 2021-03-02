@@ -131,6 +131,7 @@ int getLines(int file_descriptor, size_t* line_lengths, size_t* file_offsets, in
             if (write_check == WRITE_ERROR)
             {
                 perror("Can't print line");
+                free(line);
                 return GET_LINE_ERROR;
             }
         }
