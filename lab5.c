@@ -81,7 +81,7 @@ int getLines(int file_descriptor, size_t* line_lengths, size_t* file_offsets, in
 
         char* endptr = NULL;
         line_number = strtoll(console_input, &endptr, 0);
-        if (line_number == LONG_MAX || line_number == LONG_MIN)
+        if (line_number == LLONG_MAX || line_number == LLONG_MIN)
         {
             perror("Invalid line number");
         }
