@@ -9,7 +9,7 @@
 #define READ_ERROR -1
 #define WRITE_ERROR -1
 #define CLOSE_ERROR -1
-#define LSEEK_ERROR -1
+#define LSEEK_ERROR (off_t)-1
 #define GET_LINE_ERROR -1
 #define FILL_TABLE_ERROR -1
 #define ALLOC_ERROR NULL
@@ -17,7 +17,8 @@
 #define TABLE_SIZE 256
 #define CONSOLE_INPUT_SIZE 100
 
-int fillTable(int file_descriptor, size_t* line_lengths, size_t* file_offsets)
+
+int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets)
 {
     char read_buffer[BUFSIZ];
     int actual_buffer_size =  1;
@@ -41,7 +42,7 @@ int fillTable(int file_descriptor, size_t* line_lengths, size_t* file_offsets)
             current_offset++;
             if (read_buffer[i] == '\n')
             {
-                file_offsets[file_offset_index] = current_offset - line_lengths[current_line_index];
+                file_offsets[file_offset_index] = (off_t)(current_offset - line_lengths[current_line_index]);
                 current_line_index++;
                 file_offset_index++;
             }
@@ -49,17 +50,14 @@ int fillTable(int file_descriptor, size_t* line_lengths, size_t* file_offsets)
     }
 
     return (current_line_index);
-
-
 }
 
-int getLines(int file_descriptor, size_t* line_lengths, size_t* file_offsets, int number_of_lines)
+int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int number_of_lines)
 {
     char* line = NULL;
     char console_input[CONSOLE_INPUT_SIZE]; 
-    size_t line_number = 0;
+    long long line_number = 0;
     char text_for_user[23] = "Enter number of line: ";
-
 
     while(TRUE)
     {
@@ -84,6 +82,7 @@ int getLines(int file_descriptor, size_t* line_lengths, size_t* file_offsets, in
         if (line_number == LLONG_MAX || line_number == LLONG_MIN)
         {
             perror("Invalid line number");
+            continue;
         }
         
         if (line_number == STOP_NUMBER)
@@ -92,7 +91,7 @@ int getLines(int file_descriptor, size_t* line_lengths, size_t* file_offsets, in
         }
         if (line_number > number_of_lines || line_number < 0)
         {
-            printf("%s", "Invalid number of line. Try again.\n");
+            printf("%s", "Invalid line number: No such line in file\n");
             continue;
         }
         if (line_lengths[line_number] != 0)
@@ -109,7 +108,7 @@ int getLines(int file_descriptor, size_t* line_lengths, size_t* file_offsets, in
             off_t lseek_check  = 0;
             lseek_check = lseek(file_descriptor, file_offsets[line_number], SEEK_SET);
 
-            if ((int)lseek_check == LSEEK_ERROR)
+            if (lseek_check == LSEEK_ERROR)
             {
                 perror("Seek error");
                 free(line);
@@ -144,7 +143,7 @@ int getLines(int file_descriptor, size_t* line_lengths, size_t* file_offsets, in
 
  int main(int argc, char* argv[])
  {
-    size_t file_offsets[TABLE_SIZE]  = {0};
+    off_t file_offsets[TABLE_SIZE]  = {0};
     size_t line_lengths[TABLE_SIZE]  = {0};
 
     size_t file_descriptor = -1;
@@ -154,7 +153,7 @@ int getLines(int file_descriptor, size_t* line_lengths, size_t* file_offsets, in
     if (argc != 2)
     {
         printf("Usage: a.out f1\n");
-        exit(EXIT_FAILURE);
+        return -1;
     }
     
     file_descriptor = open(argv[1], O_RDONLY);
@@ -162,7 +161,7 @@ int getLines(int file_descriptor, size_t* line_lengths, size_t* file_offsets, in
     if (file_descriptor == OPEN_ERROR)
     {
         perror("Can't open file");
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     number_of_lines = fillTable(file_descriptor, line_lengths, file_offsets);
@@ -170,7 +169,7 @@ int getLines(int file_descriptor, size_t* line_lengths, size_t* file_offsets, in
     if (number_of_lines == FILL_TABLE_ERROR)
     {
         printf("Error with filling the table");
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     int get_lines_check = -1;
@@ -180,7 +179,7 @@ int getLines(int file_descriptor, size_t* line_lengths, size_t* file_offsets, in
     if (get_lines_check == GET_LINE_ERROR)
     {
         printf("Error with printing lines");
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     int close_check = 1;
@@ -189,7 +188,7 @@ int getLines(int file_descriptor, size_t* line_lengths, size_t* file_offsets, in
     if (close_check == CLOSE_ERROR)
     {
         perror("Error with closing the file");
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     return 0;
