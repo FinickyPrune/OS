@@ -96,7 +96,7 @@ int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int
         }
         if (line_lengths[line_number] != 0)
         {
-            line = (char*)realloc(line,sizeof(char) * line_lengths[line_number]);
+            line = (char*)malloc(sizeof(char) * line_lengths[line_number]);
 
             if (line == ALLOC_ERROR)
             {
@@ -133,11 +133,13 @@ int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int
                 free(line);
                 return GET_LINE_ERROR;
             }
+
+            free(line);
         }
         printf("\n");  
     }
 
-    free(line);
+    
     return 0;
 }
 
