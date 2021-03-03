@@ -1,6 +1,7 @@
 #include "StringList.h"
 
 #define ALLOC_ERROR NULL
+#define HEAD_ERROR NULL
 
 node* initHead() 
 {
@@ -17,6 +18,28 @@ node* initHead()
 	head->next = NULL;
 	head->str_value = NULL;
 	return head;
+}
+
+list* initList()
+{
+	list* new_list = NULL;
+	new_list = (list*)malloc(sizeof(list));
+
+	if (new_list == ALLOC_ERROR)
+	{
+		perror("Can't allocate memory for list.");
+		return NULL;
+	}
+
+	new_list->head_node = initHead();
+
+	if (new_list->head_node == HEAD_ERROR)
+	{
+		return NULL;
+	}
+
+	new_list->last_node = NULL;
+	return new_list;
 }
 
 void freeNode(node* currentNode) 
@@ -48,7 +71,7 @@ node* initNode(char* new_string)
 
 	// size_t strlen(char*) возвращает длину строки, НЕ считая нулевой символ
 		
-	new_node->str_value = (char*)malloc(string_length + 1);
+	new_node->str_value = (char*)malloc(string_length+1);
 	char* string_ptr = new_node->str_value;
 
 	if (string_ptr == ALLOC_ERROR)
@@ -59,7 +82,7 @@ node* initNode(char* new_string)
 
 	char* cpy_check = NULL;
 
-	cpy_check = strncpy(string_ptr, new_string, string_length);
+	cpy_check = strncpy(string_ptr, new_string, string_length+1);
 
 	if (cpy_check == NULL)
 	{
@@ -74,21 +97,22 @@ node* initNode(char* new_string)
 
 }
 
-void pushNode(node* head, node* new_node)
+void pushNode(list* list, node* new_node)
 {
-	node* curr_node = head;
-
-	while (curr_node->next != NULL)
+	if (list->last_node == NULL)
 	{
-		curr_node = curr_node->next;
-	}
+		list->head_node->next = new_node;
+		list->last_node = new_node;
+		return;
+	}	
 
-	curr_node->next = new_node;
+	list->last_node->next = new_node;
+	list->last_node = new_node;
 }
 
-void deleteList(node* head)
+void deleteList(list* list)
 {
-	node* i = head;
+	node* i = list->head_node;
 	node* j = NULL;
 	while (i != NULL) 
 	{
@@ -96,5 +120,6 @@ void deleteList(node* head)
 		freeNode(i);
 		i = j;
 	}
+	free(list);
 }
 

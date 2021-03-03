@@ -2,8 +2,10 @@
 
 #define STOP_SYMBOL '.'
 #define LIST_ERROR NULL
+#define GET_LINES_ERROR -1
+#define PRINT_LINES_ERROR -1
 
-void getLines(node* head)
+int getLines(list* list)
 {
 	printf("%s", "Enter your lines:\n");
 	
@@ -27,29 +29,31 @@ void getLines(node* head)
         if (currentNode == LIST_ERROR)
         {
             printf("%s", "Can't init new node.");
-		    deleteList(head);
-            exit(EXIT_FAILURE);
+		    deleteList(list);
+            return GET_LINES_ERROR;
         }
             
-        pushNode(head, currentNode);
+        pushNode(list, currentNode);
 	}
 
 	if (fgets_check == NULL)
 	{
 		perror("Can't read the line.");
-		deleteList(head);
-        exit(EXIT_FAILURE);
+		deleteList(list);
+        return GET_LINES_ERROR;
 	}
+
+	return 0;
 }
 
-void printLines(node* head)
+int printLines(list* list)
 {
 	printf("%s", "\nYour lines:\n");
 	
 	int fputs_check;
 	node* i = NULL;
 
-	for (i = head->next; i != NULL; i = i->next)
+	for (i = list->head_node->next; i != NULL; i = i->next)
 	{
 		fputs_check = fputs(i->str_value, stdout);
 
@@ -59,27 +63,42 @@ void printLines(node* head)
 		if (fputs_check == EOF)
 		{
 			perror("Can't print this string.");
+			deleteList(list);
+			return PRINT_LINES_ERROR;
 		}
 	}
+
+	return -1;
 }
 
 int main() 
 {
-	node* head = NULL;
+	list* list = NULL;
 
-	head = initHead();
-	
-    if (head == LIST_ERROR)
+	list = initList();
+
+	if (list == LIST_ERROR)
     {
-        printf("%s", "Can't init head.");
+        printf("%s", "Can't init list.");
         return -1;
     }
 
-	getLines(head);
+	int check = 0;
+	check = getLines(list);
 	
-	printLines(head);
+	if (check == GET_LINES_ERROR)
+	{
+		return -1;
+	}
 	
-	deleteList(head);
+	check = printLines(list);
+
+	if (check == PRINT_LINES_ERROR)
+	{
+		return -1;
+	}
+	
+	deleteList(list);
 
 	return 0;
 }

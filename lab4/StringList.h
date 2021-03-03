@@ -9,12 +9,20 @@ typedef struct node
 	struct node* next;
 } node;
 
+typedef struct list
+{
+	node* head_node;
+	node* last_node;
+} list;
+
 node* initHead();
+
+list* initList();
 
 void freeNode(node* currentNode);
 
 node* initNode(char* new_string);
 
-void pushNode(node* head, node* newNode);
+void pushNode(list* list, node* new_node);
 
-void deleteList(node* head);
+void deleteList(list* list);
