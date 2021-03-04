@@ -111,7 +111,7 @@ int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int
     int result;
 
     FD_ZERO(&read_descriptors);
-    FD_SET(0, &read_descriptors);
+    FD_SET(STDIN_FILENO, &read_descriptors);
 
     timeout.tv_sec = TIMEOUT_SEC;
     timeout.tv_usec = TIMEOUT_USEC;
