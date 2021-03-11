@@ -7,8 +7,12 @@
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <string.h>
 
 #define TRUE 1
+#define FALSE 0
+#define WAIT_REACTION_ERROR -1
+#define GET_NUMBER_ERROR -1
 #define OPEN_ERROR -1
 #define READ_ERROR -1
 #define PRINTF_ERROR 0
@@ -24,11 +28,15 @@
 #define TIMEOUT_USEC 0
 #define TABLE_SIZE 256
 #define CONSOLE_INPUT_SIZE 100
+#define FAIL -1
+#define SUCCESS 0
+#define DECIMAL_SYSTEM 0
+#define INIT_CHECK 0
 
 int printFile(size_t* line_lengths, off_t* file_offsets)
 {
     int index = 1;
-    int printf_check = 0;
+    int printf_check = INIT_CHECK;
 
     while (file_offsets[index] != 0)
     {
@@ -43,7 +51,7 @@ int printFile(size_t* line_lengths, off_t* file_offsets)
         index++;
     }
 
-    return 0;
+    return SUCCESS;
 }
 
 int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int file_size)
@@ -77,16 +85,12 @@ int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets, in
     return (current_line_index);
 }
 
-int getLines(size_t* line_lengths, off_t* file_offsets, int number_of_lines, int file_size)
+int waitForReaction()
 {
-    off_t line = 0;
-    char console_input[CONSOLE_INPUT_SIZE]; 
-    size_t line_number = 0;
-    char enter_number_msg[23] = "Enter number of line: ";
     char timeout_warning_msg[31] = "Five seconds to enter number: ";
     char timeout_msg[26] = "\nTime is out. Your file:\n";
-    int printf_check = 0;
-
+    
+    int printf_check = INIT_CHECK;
 
     fd_set read_descriptors;
     struct timeval timeout;
@@ -102,7 +106,7 @@ int getLines(size_t* line_lengths, off_t* file_offsets, int number_of_lines, int
     if (printf_check < PRINTF_ERROR)
     {
         perror("Can't print timeout warning message");
-        return GET_LINE_ERROR;
+        return WAIT_REACTION_ERROR;
     }
     fflush(stdout);
 
@@ -111,12 +115,12 @@ int getLines(size_t* line_lengths, off_t* file_offsets, int number_of_lines, int
     if (result == SELECT_ERROR)
     {
         perror("Select error");
-        return GET_LINE_ERROR;
+        return WAIT_REACTION_ERROR;
     }
 
     if (result == 0)
     {
-        int check = 0;
+        int check = INIT_CHECK;
 
         printf_check = printf("%.*s", 26, timeout_msg);
         if (printf_check < PRINTF_ERROR)
@@ -125,33 +129,79 @@ int getLines(size_t* line_lengths, off_t* file_offsets, int number_of_lines, int
             return GET_LINE_ERROR;
         }
         fflush(stdout);
+        return FALSE;
+    }
 
+    return TRUE;
+}
+
+long long getNumber()
+{
+        char enter_number_msg[23] = "Enter number of line: ";
+        long long line_number;
+        char console_input[CONSOLE_INPUT_SIZE]; 
+
+        int printf_check = INIT_CHECK;
+        printf_check = printf("%.*s", 23, enter_number_msg);
+        if (printf_check == PRINTF_ERROR)
+        {
+            perror("Can't print message for user");
+            return GET_NUMBER_ERROR;
+        }
+        fflush(stdout);
+
+        int read_check = INIT_CHECK;
+        read_check = read(STDIN_FILENO, console_input, CONSOLE_INPUT_SIZE);
+        if (read_check == READ_ERROR)
+        {
+            perror("Can't read current text");
+            return GET_NUMBER_ERROR;
+        }
+
+        char* endptr = NULL;
+        line_number = strtoll(console_input, &endptr, DECIMAL_SYSTEM);
+        
+        return line_number;
+}
+
+
+int getLines(size_t* line_lengths, off_t* file_offsets, int number_of_lines, int file_size)
+{
+    off_t line = 0;
+    long long line_number = 0;
+    int waiting_result = 0;
+    int printf_check = INIT_CHECK;
+
+    waiting_result = waitForReaction();
+    if (waiting_result == WAIT_REACTION_ERROR)
+    {
+        return GET_LINE_ERROR;
+    }
+    if (waiting_result == FALSE)
+    {
+        int check = INIT_CHECK;
         check = printFile(line_lengths, file_offsets);
         if(check == PRINT_FILE_ERROR)
         {
             return GET_LINE_ERROR;
         }
-        return 0;
+        return SUCCESS;
     }
 
     while(TRUE)
     {
-        int read_check = 0;
-        read_check = read(STDIN_FILENO, console_input, CONSOLE_INPUT_SIZE);
-        if (read_check == READ_ERROR)
+        line_number = getNumber();
+
+        if (line_number == GET_NUMBER_ERROR)
         {
-            perror("Can't read current text");
+            printf("%s", "Can't get number from user");
             return GET_LINE_ERROR;
         }
-
-        char* endptr = NULL;
-        line_number = strtoll(console_input, &endptr, 0);
         if (line_number == LLONG_MAX || line_number == LLONG_MIN)
         {
             perror("Invalid line number");
             continue;
         }
-        
         if (line_number == STOP_NUMBER)
         {
             break;
@@ -179,23 +229,17 @@ int getLines(size_t* line_lengths, off_t* file_offsets, int number_of_lines, int
             fflush(stdout);
 
         } 
-        printf_check = printf("%.*s", 23, enter_number_msg);
-        if (printf_check < PRINTF_ERROR)
-        {
-            perror("Can't print \"Enter number\" message");
-            return GET_LINE_ERROR;
-        }
-        fflush(stdout);
+        
     }
     
-    int munmap_check = 0;
+    int munmap_check = INIT_CHECK;
     munmap_check = munmap((char*)file_offsets[1], file_size);
     if (munmap_check == MUNMAP_ERROR)
     {
         perror("Can't clean memory");
         return GET_LINE_ERROR;
     }
-    return 0;
+    return SUCCESS;
 }
 
  int main(int argc, char* argv[])
@@ -203,15 +247,15 @@ int getLines(size_t* line_lengths, off_t* file_offsets, int number_of_lines, int
     off_t file_offsets[TABLE_SIZE]  = {0};
     size_t line_lengths[TABLE_SIZE]  = {0};
 
-    size_t file_descriptor = -1;
-    size_t number_of_lines = -1;
+    int file_descriptor = INIT_CHECK;
+    int number_of_lines = INIT_CHECK;
     struct stat file_info;
     int file_size = 0;
     
     if (argc != 2)
     {
         printf("Usage: a.out f1\n");
-        return -1;
+        return FAIL;
     }
     
     file_descriptor = open(argv[1], O_RDONLY);
@@ -219,15 +263,15 @@ int getLines(size_t* line_lengths, off_t* file_offsets, int number_of_lines, int
     if (file_descriptor == OPEN_ERROR)
     {
         perror("Can't open file");
-        return -1;
+        return FAIL;
     }
 
-    int fstat_check = 0;
+    int fstat_check = INIT_CHECK;
     fstat_check = fstat(file_descriptor, &file_info);
     if (fstat_check == FSTAT_ERROR)
     {
         perror("Can't get file information");
-        return -1;
+        return FAIL;
     }
     file_size = (int)file_info.st_size;
 
@@ -236,26 +280,26 @@ int getLines(size_t* line_lengths, off_t* file_offsets, int number_of_lines, int
     if (number_of_lines == FILL_TABLE_ERROR)
     {
         printf("Error with filling the table");
-        return -1;
+        return FAIL;
     }
     
-    int close_check = 1;
+    int close_check = INIT_CHECK;
     close_check = close(file_descriptor);
 
     if (close_check == CLOSE_ERROR)
     {
         perror("Error with closing the file");
-        return -1;
+        return FAIL;
     }
 
-    int get_lines_check = -1;
+    int get_lines_check = INIT_CHECK;
     
     get_lines_check = getLines(line_lengths, file_offsets, number_of_lines, file_size);
     
     if (get_lines_check == GET_LINE_ERROR)
     {
         printf("Error with printing lines\n");
-        return -1;
+        return FAIL;
     }
-    return 0;
+    return SUCCESS;
  }
