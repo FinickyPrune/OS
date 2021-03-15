@@ -15,7 +15,7 @@
 #define PRINT_LINE_ERROR -1
 #define GET_NUMBER_ERROR -1
 #define FILL_TABLE_ERROR -1
-#define STOP_NUMBER '0'
+#define STOP_NUMBER 0
 #define TABLE_SIZE 256
 #define CONSOLE_INPUT_SIZE 100
 #define FAIL -1
