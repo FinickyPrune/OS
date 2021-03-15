@@ -15,7 +15,6 @@
 #define PRINT_LINE_ERROR -1
 #define GET_NUMBER_ERROR -1
 #define FILL_TABLE_ERROR -1
-#define ALLOC_ERROR NULL
 #define STOP_NUMBER 0
 #define TABLE_SIZE 256
 #define CONSOLE_INPUT_SIZE 100
@@ -29,12 +28,6 @@
 int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets)
 {
     char read_buffer[BUFFER_SIZE];
-
-    if (read_buffer == ALLOC_ERROR)
-    {
-        perror("Can't allocate memory for buffer");
-        return FILL_TABLE_ERROR;
-    }
 
     int actual_buffer_size =  BUFFER_SIZE;
 

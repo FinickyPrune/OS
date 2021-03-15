@@ -21,7 +21,6 @@
 #define PRINT_LINE_ERROR -1
 #define SELECT_ERROR -1
 #define WAIT_REACTION_ERROR -1
-#define ALLOC_ERROR NULL
 #define STOP_NUMBER 0
 #define TIMEOUT_SEC 5
 #define TIMEOUT_USEC 0
@@ -37,11 +36,6 @@ int printFile(int file_descriptor)
 {
     char* buffer[BUFFER_SIZE];
 
-    if (buffer == ALLOC_ERROR)
-    {
-        perror("Can't allocate memory foor buffer");
-        return FILL_TABLE_ERROR;
-    }
     int actual_buffer_size =  BUFFER_SIZE;
 
     off_t lseek_check  = INIT_CHECK;
