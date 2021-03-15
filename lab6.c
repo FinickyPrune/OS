@@ -17,7 +17,7 @@
 #define FILL_TABLE_ERROR -1
 #define PRINT_FILE_ERROR -1
 #define GET_NUMBER_ERROR -1
-#define READ_LINE_ERROR NULL
+#define READ_LINE_ERROR -1
 #define PRINT_LINE_ERROR -1
 #define SELECT_ERROR -1
 #define WAIT_REACTION_ERROR -1
@@ -35,14 +35,14 @@
 
 int printFile(int file_descriptor)
 {
-    char* buffer = (char*)malloc(sizeof(char) * BUFFER_SIZE);
+    char* buffer[BUFFER_SIZE];
 
     if (buffer == ALLOC_ERROR)
     {
         perror("Can't allocate memory foor buffer");
         return FILL_TABLE_ERROR;
     }
-    int actual_buffer_size =  1;
+    int actual_buffer_size =  BUFFER_SIZE;
 
     off_t lseek_check  = INIT_CHECK;
     lseek_check = lseek(file_descriptor, 0, SEEK_SET);
@@ -152,15 +152,11 @@ long long getNumber()
         return line_number;
 }
 
-char* readLineFromFile(int file_descriptor, int line_length, off_t offset)
+int readLineFromFile(int file_descriptor, int line_length, off_t offset, char* line)
 {
-    char* line = NULL;
-    line = (char*)malloc(sizeof(char) * line_length);
-
         if (line == ALLOC_ERROR)
         {
             perror("Can't allocate memory with realloc");
-            free(line);
             return READ_LINE_ERROR;
         }
 
@@ -170,7 +166,6 @@ char* readLineFromFile(int file_descriptor, int line_length, off_t offset)
         if (lseek_check == LSEEK_ERROR)
         {
             perror("Seek error");
-            free(line);
             return READ_LINE_ERROR;
         }
     
@@ -180,17 +175,16 @@ char* readLineFromFile(int file_descriptor, int line_length, off_t offset)
         if (read_check == READ_ERROR)
         {
             perror("Can't read current text");
-            free(line);
             return READ_LINE_ERROR;
         }
 
-        return line;
+        return SUCCESS;
 }
 
 int printLine(char* line, int line_length)
 {
     int write_check = INIT_CHECK;
-    write(STDOUT_FILENO, line, line_length);
+    write_check = write(STDOUT_FILENO, line, line_length);
     if (write_check == WRITE_ERROR)
     {
         perror("Can't print line");
@@ -249,7 +243,6 @@ int waitForReaction(int file_descriptor)
 
 int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int number_of_lines)
 {
-    char* line = NULL;
     long long line_number = 0;
     off_t offset = 0;
     int line_length = 0;
@@ -298,10 +291,12 @@ int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int
         {
             offset = file_offsets[line_number];
             line_length = line_lengths[line_number];
+            char line[line_length];
+            int read_line_check = INIT_CHECK;
 
-            line = readLineFromFile(file_descriptor, line_length, offset);
+            read_line_check = readLineFromFile(file_descriptor, line_length, offset, line);
 
-            if (line == READ_LINE_ERROR)
+            if (read_line_check == READ_LINE_ERROR)
             {
                 printf("%s", "Can't read line");
                 return GET_LINE_ERROR;
@@ -311,11 +306,9 @@ int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int
             print_line_check = printLine(line, line_length);
             if (print_line_check == PRINT_LINE_ERROR)
             {
-                free(line);
                 printf("%s", "Can't print line");
                 return GET_LINE_ERROR;
             }
-            free(line);
         }
     }    
     return SUCCESS;
