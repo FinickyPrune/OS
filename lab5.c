@@ -47,7 +47,6 @@ int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets)
         actual_buffer_size = read(file_descriptor, read_buffer, BUFFER_SIZE);
         if (actual_buffer_size == READ_ERROR)
         {
-            free(read_buffer);
             perror("Can't read current text");
             return FILL_TABLE_ERROR;
         }
@@ -65,8 +64,6 @@ int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets)
         }
         
     }
-
-    free(read_buffer);
     return (current_line_index);
 }
 
@@ -100,12 +97,6 @@ long long getNumber()
 
 int readLineFromFile(int file_descriptor, int line_length, off_t offset, char* line)
 {
-        if (line == ALLOC_ERROR)
-        {
-            perror("Can't allocate memory with realloc");
-            return READ_LINE_ERROR;
-        }
-
         off_t lseek_check  = INIT_CHECK;
         lseek_check = lseek(file_descriptor, offset, SEEK_SET);
 
@@ -133,7 +124,6 @@ int printLine(char* line, int line_length)
     if (write_check == WRITE_ERROR)
     {
         perror("Can't print line");
-        free(line);
         return PRINT_LINE_ERROR;
     }
 
