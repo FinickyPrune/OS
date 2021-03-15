@@ -31,10 +31,17 @@
 #define SUCCESS 0
 #define DECIMAL_SYSTEM 0
 #define INIT_CHECK 0
+#define BUFFER_SIZE 1024
 
 int printFile(int file_descriptor)
 {
-    char buffer[BUFSIZ];
+    char* buffer = (char*)malloc(sizeof(char) * BUFFER_SIZE);
+
+    if (buffer == ALLOC_ERROR)
+    {
+        perror("Can't allocate memory foor buffer");
+        return FILL_TABLE_ERROR;
+    }
     int actual_buffer_size =  1;
 
     off_t lseek_check  = INIT_CHECK;
@@ -42,15 +49,17 @@ int printFile(int file_descriptor)
     if (lseek_check == LSEEK_ERROR)
     {
         perror("Seek error");
+        free(buffer);
         return PRINT_FILE_ERROR;
     }
 
     while (TRUE)
     {
-        actual_buffer_size = read(file_descriptor, buffer, BUFSIZ);
+        actual_buffer_size = read(file_descriptor, buffer, BUFFER_SIZE);
         if (actual_buffer_size == READ_ERROR)
         {
             perror("Can't read current text");
+            free(buffer);
             return PRINT_FILE_ERROR;
         }
 
@@ -64,15 +73,24 @@ int printFile(int file_descriptor)
         if (write_check == WRITE_ERROR)
         {
             perror("Can't print message for user");
+            free(buffer);
             return PRINT_FILE_ERROR;
         }
 
     }
+
+    free(buffer);
 }
 
 int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets)
 {
-    char read_buffer[BUFSIZ];
+    char* read_buffer = (char*)malloc(sizeof(char) * BUFFER_SIZE);
+
+    if (read_buffer == ALLOC_ERROR)
+    {
+        perror("Can't allocate memory foor buffer");
+        return FILL_TABLE_ERROR;
+    }
     int actual_buffer_size =  1;
 
     int current_line_index = 1;
@@ -81,10 +99,11 @@ int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets)
     
     while (actual_buffer_size > 0)
     {
-        actual_buffer_size = read(file_descriptor, read_buffer, BUFSIZ);
+        actual_buffer_size = read(file_descriptor, read_buffer, BUFFER_SIZE);
         if (actual_buffer_size == READ_ERROR)
         {
             perror("Can't read current text");
+            free(read_buffer);
             return FILL_TABLE_ERROR;
         }
         
@@ -101,9 +120,8 @@ int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets)
         }
     }
 
+    free(read_buffer);
     return (current_line_index);
-
-
 }
 
 long long getNumber()
