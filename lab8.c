@@ -68,7 +68,6 @@ int advisory_lock(struct flock* lock, int file_descriptor, char* file_name)
     if (fcntl_check == FCNTL_ERROR)
     {
         perror("fcntl() lock error");
-        return SUCCESS;
     } 
 
     printf("Press Enter to open edtior\n");
@@ -112,7 +111,6 @@ int mandatory_lock(struct flock* lock, int file_descriptor, char* file_name)
     if (fcntl_check == FCNTL_ERROR)
     {
         perror("fcntl() lock error");
-        return SUCCESS;
     } 
 
     printf("Press Enter to open edtior\n");
