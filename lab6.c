@@ -21,7 +21,7 @@
 #define PRINT_LINE_ERROR -1
 #define SELECT_ERROR -1
 #define WAIT_REACTION_ERROR -1
-#define STOP_NUMBER 0
+#define STOP_NUMBER '0'
 #define TIMEOUT_SEC 5
 #define TIMEOUT_USEC 0
 #define TABLE_SIZE 256
