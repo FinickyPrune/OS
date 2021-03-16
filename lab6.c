@@ -74,13 +74,8 @@ int printFile(int file_descriptor)
 
 int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets)
 {
-    char* read_buffer[BUFFER_SIZE];
+    char read_buffer[BUFFER_SIZE];
 
-    if (read_buffer == ALLOC_ERROR)
-    {
-        perror("Can't allocate memory foor buffer");
-        return FILL_TABLE_ERROR;
-    }
     int actual_buffer_size =  1;
 
     int current_line_index = 1;
