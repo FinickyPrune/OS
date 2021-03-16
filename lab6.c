@@ -36,15 +36,9 @@
 
 int printFile(int file_descriptor)
 {
-<<<<<<< Updated upstream
-    char* buffer[BUFFER_SIZE];
-
-    int actual_buffer_size =  BUFFER_SIZE;
-=======
     char buffer[BUFFER_SIZE];
 
     int number_of_read_symbols = 0;
->>>>>>> Stashed changes
 
     off_t lseek_check  = INIT_CHECK;
     lseek_check = lseek(file_descriptor, 0, SEEK_SET);
@@ -84,11 +78,7 @@ int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets)
 {
     char read_buffer[BUFFER_SIZE];
 
-<<<<<<< Updated upstream
-    int actual_buffer_size =  1;
-=======
     int number_of_read_symbols = 1;
->>>>>>> Stashed changes
 
     int current_line_index = 1;
     int file_offset_index = 1;
