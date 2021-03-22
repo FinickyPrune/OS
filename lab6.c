@@ -31,12 +31,14 @@
 #define DECIMAL_SYSTEM 0
 #define INIT_CHECK 0
 #define BUFFER_SIZE 1024
+#define MAX_DP 1
+#define NO_REACTION 0
 
 int printFile(int file_descriptor)
 {
-    char* buffer[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE];
 
-    int actual_buffer_size =  BUFFER_SIZE;
+    int number_of_read_symbols = 0;
 
     off_t lseek_check  = INIT_CHECK;
     lseek_check = lseek(file_descriptor, 0, SEEK_SET);
@@ -48,20 +50,20 @@ int printFile(int file_descriptor)
 
     while (TRUE)
     {
-        actual_buffer_size = read(file_descriptor, buffer, BUFFER_SIZE);
-        if (actual_buffer_size == READ_ERROR)
+        number_of_read_symbols = read(file_descriptor, buffer, BUFFER_SIZE);
+        if (number_of_read_symbols == READ_ERROR)
         {
             perror("Can't read current text");
             return PRINT_FILE_ERROR;
         }
 
-        if (actual_buffer_size == 0)
+        if (number_of_read_symbols == 0)
         {
             break;
         }
         
         int write_check = INIT_CHECK;
-        write_check = write(STDOUT_FILENO, buffer, actual_buffer_size);
+        write_check = write(STDOUT_FILENO, buffer, number_of_read_symbols);
         if (write_check == WRITE_ERROR)
         {
             perror("Can't print message for user");
@@ -76,22 +78,22 @@ int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets)
 {
     char read_buffer[BUFFER_SIZE];
 
-    int actual_buffer_size =  1;
+    int number_of_read_symbols = 1;
 
     int current_line_index = 1;
     int file_offset_index = 1;
     int current_offset = 0;
     
-    while (actual_buffer_size > 0)
+    while (number_of_read_symbols > 0)
     {
-        actual_buffer_size = read(file_descriptor, read_buffer, BUFFER_SIZE);
-        if (actual_buffer_size == READ_ERROR)
+        number_of_read_symbols = read(file_descriptor, read_buffer, BUFFER_SIZE);
+        if (number_of_read_symbols == READ_ERROR)
         {
             perror("Can't read current text");
             return FILL_TABLE_ERROR;
         }
         
-        for (size_t i = 0; i < actual_buffer_size; i++)
+        for (size_t i = 0; i < number_of_read_symbols; i++)
         {
             line_lengths[current_line_index]++;
             current_offset++;
@@ -109,18 +111,9 @@ int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets)
 
 long long getNumber()
 {
-        char text_for_user[23] = "Enter number of line: ";
         long long line_number;
         char console_input[CONSOLE_INPUT_SIZE]; 
-
-        int write_check = INIT_CHECK;
-        write_check = write(STDOUT_FILENO, text_for_user, 23);
-        if (write_check == WRITE_ERROR)
-        {
-            perror("Can't print message for user");
-            return GET_NUMBER_ERROR;
-        }
-        
+    
         int read_check = INIT_CHECK;
         read_check = read(STDIN_FILENO, console_input, CONSOLE_INPUT_SIZE);
         if (read_check == READ_ERROR)
@@ -193,7 +186,7 @@ int waitForReaction(int file_descriptor)
         return WAIT_REACTION_ERROR;
     }
         
-    result = select(1, &read_descriptors, NULL, NULL, &timeout);
+    result = select(MAX_DP, &read_descriptors, NULL, NULL, &timeout);
 
     if (result == SELECT_ERROR)
     {
@@ -201,7 +194,7 @@ int waitForReaction(int file_descriptor)
         return WAIT_REACTION_ERROR;
     }
 
-    if (result == 0)
+    if (result == NO_REACTION)
     {
         int check = INIT_CHECK;
         write_check = write(STDOUT_FILENO, timeout_msg, 26);
@@ -213,8 +206,11 @@ int waitForReaction(int file_descriptor)
         return FALSE;
     }
 
-    return TRUE;
-
+    if (FD_ISSET(STDIN_FILENO, &read_descriptors) != FALSE)
+    {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int number_of_lines)
@@ -224,24 +220,24 @@ int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int
     int line_length = 0;
     int waiting_result = 0;
    
-    waiting_result = waitForReaction(file_descriptor);
-    if (waiting_result == WAIT_REACTION_ERROR)
+    while(TRUE)
     {
-        return GET_LINE_ERROR;
-    }
-    if (waiting_result == FALSE)
-    {
-        int check = INIT_CHECK;
-        check = printFile(file_descriptor);
-        if(check == PRINT_FILE_ERROR)
+        waiting_result = waitForReaction(file_descriptor);
+        if (waiting_result == WAIT_REACTION_ERROR)
         {
             return GET_LINE_ERROR;
         }
-        return SUCCESS;
-    }
-    
-    while(TRUE)
-    {
+        if (waiting_result == FALSE)
+        {
+            int check = INIT_CHECK;
+            check = printFile(file_descriptor);
+            if(check == PRINT_FILE_ERROR)
+            {
+                return GET_LINE_ERROR;
+            }
+            return SUCCESS;
+        }
+        
         line_number = getNumber();
 
         if (line_number == GET_NUMBER_ERROR)
