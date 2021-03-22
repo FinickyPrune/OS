@@ -57,12 +57,12 @@ int try_open_editor(const char* file_name)
     return SUCCESS;
 }
 
-int advisory_lock(struct flock* lock, int file_descriptor, char* file_name)
+int set_remove_lock(struct flock* lock, int file_descriptor, char* file_name)
 {
     int fcntl_check = CHECK;
     lock->l_type = F_WRLCK;
  
-    printf("Setting advisory lock\n");
+    printf("Setting lock\n");
  
     fcntl_check = fcntl(file_descriptor, F_SETLK, lock);
     if (fcntl_check == FCNTL_ERROR)
@@ -84,7 +84,7 @@ int advisory_lock(struct flock* lock, int file_descriptor, char* file_name)
 
     lock->l_type = F_UNLCK;
 
-    printf("Removing advisory lock\n");
+    printf("Removing lock\n");
 
     fcntl_check = fcntl(file_descriptor, F_SETLK, lock);
     if (fcntl_check == FCNTL_ERROR)
@@ -92,50 +92,7 @@ int advisory_lock(struct flock* lock, int file_descriptor, char* file_name)
         perror("fcntl() unlock error");
         return LOCK_ERROR;
     } 
-
-    printf("Press Enter to continue...\n");
-
-    enter_symbol = getchar();
-
     return SUCCESS;
-}
-
-int mandatory_lock(struct flock* lock, int file_descriptor, char* file_name)
-{
-    int fcntl_check = CHECK;
-    lock->l_type = F_WRLCK;
-
-    printf("Setting mandatory lock\n");
-
-    fcntl_check = fcntl(file_descriptor, F_SETLKW, lock);
-    if (fcntl_check == FCNTL_ERROR)
-    {
-        perror("fcntl() lock error");
-    } 
-
-    printf("Press Enter to open edtior\n");
-
-    char enter_symbol = getchar();
-
-    int check = CHECK;
-    check = try_open_editor(file_name);
-    if (check == OPEN_EDITOR_ERROR)
-    {
-        printf("Error while calling editor\n");
-        return LOCK_ERROR;
-    }
-
-    lock->l_type = F_UNLCK;
-    printf("Removing mandatory lock\n");
-    
-    fcntl_check = fcntl(file_descriptor, F_SETLKW, lock);
-    if (fcntl_check == FCNTL_ERROR)
-    {
-        perror("fcntl() unlock error");
-        return LOCK_ERROR;
-    }
-
-    return SUCCESS; 
 }
 
  int main(int argc, char *argv[])
@@ -164,30 +121,16 @@ int mandatory_lock(struct flock* lock, int file_descriptor, char* file_name)
         return FAIL;
     }
 
-    lock_check = advisory_lock(&lock, file_descriptor, argv[1]);
+    lock_check = set_remove_lock(&lock, file_descriptor, argv[1]);
     if (lock_check == LOCK_ERROR)
     {
-        printf("Error in advisory lock\n");
+        printf("Error while setting lock\n");
         close_check = close(file_descriptor);
         if (close_check == CLOSE_ERROR)
         {
             perror("Error with closing the file");
             return FAIL;
         }
-        return FAIL;
-    }
-
-    lock_check = mandatory_lock(&lock, file_descriptor, argv[1]);
-    if (lock_check == LOCK_ERROR)
-    {
-        printf("Error in mandatory lock\n");
-        close_check = close(file_descriptor);
-        if (close_check == CLOSE_ERROR)
-        {
-            perror("Error with closing the file");
-            return FAIL;
-        }
-
         return FAIL;
     }
 
