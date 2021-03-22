@@ -32,6 +32,8 @@
 #define SUCCESS 0
 #define DECIMAL_SYSTEM 0
 #define INIT_CHECK 0
+#define NO_REACTION 0
+#define MAX_DP 1
 
 int printFile(size_t* line_lengths, off_t* file_offsets)
 {
@@ -110,7 +112,7 @@ int waitForReaction()
     }
     fflush(stdout);
 
-    result = select(1, &read_descriptors, NULL, NULL, &timeout);
+    result = select(MAX_DP, &read_descriptors, NULL, NULL, &timeout);
 
     if (result == SELECT_ERROR)
     {
@@ -118,7 +120,7 @@ int waitForReaction()
         return WAIT_REACTION_ERROR;
     }
 
-    if (result == 0)
+    if (result == NO_REACTION)
     {
         int check = INIT_CHECK;
 
@@ -126,29 +128,23 @@ int waitForReaction()
         if (printf_check < PRINTF_ERROR)
         {
             perror("Can't print timeout message");
-            return GET_LINE_ERROR;
+            return WAIT_REACTION_ERROR;
         }
         fflush(stdout);
         return FALSE;
     }
 
-    return TRUE;
+    if (FD_ISSET(STDIN_FILENO, &read_descriptors) != FALSE)
+    {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 long long getNumber()
 {
-        char enter_number_msg[23] = "Enter number of line: ";
         long long line_number;
         char console_input[CONSOLE_INPUT_SIZE]; 
-
-        int printf_check = INIT_CHECK;
-        printf_check = printf("%.*s", 23, enter_number_msg);
-        if (printf_check == PRINTF_ERROR)
-        {
-            perror("Can't print message for user");
-            return GET_NUMBER_ERROR;
-        }
-        fflush(stdout);
 
         int read_check = INIT_CHECK;
         read_check = read(STDIN_FILENO, console_input, CONSOLE_INPUT_SIZE);
@@ -165,31 +161,31 @@ long long getNumber()
 }
 
 
-int getLines(size_t* line_lengths, off_t* file_offsets, int number_of_lines, int file_size)
+int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int number_of_lines, int file_size)
 {
     off_t line = 0;
     long long line_number = 0;
     int waiting_result = 0;
     int printf_check = INIT_CHECK;
 
-    waiting_result = waitForReaction();
-    if (waiting_result == WAIT_REACTION_ERROR)
+    while(TRUE)
     {
-        return GET_LINE_ERROR;
-    }
-    if (waiting_result == FALSE)
-    {
-        int check = INIT_CHECK;
-        check = printFile(line_lengths, file_offsets);
-        if(check == PRINT_FILE_ERROR)
+        waiting_result = waitForReaction(file_descriptor);
+        if (waiting_result == WAIT_REACTION_ERROR)
         {
             return GET_LINE_ERROR;
         }
-        return SUCCESS;
-    }
+        if (waiting_result == FALSE)
+        {
+            int check = INIT_CHECK;
+            check = printFile(line_lengths, file_offsets);
+            if(check == PRINT_FILE_ERROR)
+            {
+                return GET_LINE_ERROR;
+            }
+            return SUCCESS;
+        }
 
-    while(TRUE)
-    {
         line_number = getNumber();
 
         if (line_number == GET_NUMBER_ERROR)
@@ -294,7 +290,7 @@ int getLines(size_t* line_lengths, off_t* file_offsets, int number_of_lines, int
 
     int get_lines_check = INIT_CHECK;
     
-    get_lines_check = getLines(line_lengths, file_offsets, number_of_lines, file_size);
+    get_lines_check = getLines(file_descriptor, line_lengths, file_offsets, number_of_lines, file_size);
     
     if (get_lines_check == GET_LINE_ERROR)
     {
