@@ -9,6 +9,7 @@
 #define WAIT_ERROR -1
 #define CHECK -1
 #define CHILD_PROCESS 0
+#define PARENT_PROCESS 1
 
 int main(int argc, char* argv[])
 {
@@ -40,8 +41,10 @@ int main(int argc, char* argv[])
             return EXIT_FAILURE;
         }
     }
-
-    printf("I am parent\nMy child's PID: %d\nMy PID: %d\n", fork_check, getpid());
+    if (fork_check >= PARENT_PROCESS)
+    {
+        printf("I am parent\nMy child's PID: %d\nMy PID: %d\n", fork_check, getpid());
+    }
 
     wait_check = wait(&status);
     if (wait_check == WAIT_ERROR)
