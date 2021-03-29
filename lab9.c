@@ -6,6 +6,7 @@
 
 #define FORK_ERROR -1
 #define EXEC_ERROR -1
+#define WAIT_ERROR -1
 #define CHECK -1
 #define CHILD_PROCESS 0
 
@@ -30,7 +31,7 @@ int main(int argc, char* argv[])
 
     if (fork_check == CHILD_PROCESS)
     {
-        printf("\n\nI am a new process\nMy PID: %d\nMy PPID:%d\n",getpid(),getppid());
+        printf("\nI am a new process\nMy PID: %d\nMy PPID:%d\n",getpid(),getppid());
         int execl_check = CHECK;
         execl_check = execl("/bin/cat","cat",argv[1], NULL);
         if(execl_check == EXEC_ERROR)
@@ -42,7 +43,8 @@ int main(int argc, char* argv[])
 
     printf("I am parent\nMy child's PID: %d\nMy PID: %d\n", fork_check, getpid());
 
-    if (wait_check = wait(&status) < 0)
+    wait_check = wait(&status);
+    if (wait_check == WAIT_ERROR)
     {
         perror("Error while waiting child determination");
         return EXIT_FAILURE;
