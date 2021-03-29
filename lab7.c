@@ -35,15 +35,15 @@
 #define NO_REACTION 0
 #define MAX_DP 1
 
-int printFile(size_t* line_lengths, off_t* file_offsets)
+int printFile(size_t* line_lengths, off_t* memory_offsets)
 {
     int index = 1;
     int printf_check = INIT_CHECK;
 
-    while (file_offsets[index] != 0)
+    while (memory_offsets[index] != 0)
     {
         
-        printf_check = printf("%.*s", line_lengths[index], file_offsets[index]);
+        printf_check = printf("%.*s", line_lengths[index], memory_offsets[index]);
         if (printf_check < PRINTF_ERROR)
         {
             perror("Can't print file");
@@ -56,21 +56,12 @@ int printFile(size_t* line_lengths, off_t* file_offsets)
     return SUCCESS;
 }
 
-int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int file_size)
+int fillTable(char* file_adress, size_t* line_lengths, off_t* memory_offsets, int file_size)
 {
     int current_line_index = 1;
-    int file_offset_index = 1;
+    int memory_offset_index = 1;
     off_t current_offset = 0;
-    char* file_adress = NULL;
-    
-    
-    file_adress = mmap(0, file_size, PROT_READ, MAP_SHARED, file_descriptor, 0);    
-    if (file_adress == MAP_FAILED)
-    {
-        perror("Can't map file");
-        return FILL_TABLE_ERROR;
-    }
-
+   
     current_offset = (off_t)file_adress;
 
     for (int i = 0; i < file_size; i++)
@@ -79,9 +70,9 @@ int fillTable(int file_descriptor, size_t* line_lengths, off_t* file_offsets, in
         current_offset++;
         if (*(file_adress + i) == '\n')
         {
-            file_offsets[file_offset_index] = (off_t)(current_offset - line_lengths[current_line_index]);
+            memory_offsets[memory_offset_index] = (off_t)(current_offset - line_lengths[current_line_index]);
             current_line_index++;
-            file_offset_index++;
+            memory_offset_index++;
         }
     }
     return (current_line_index);
@@ -161,7 +152,7 @@ long long getNumber()
 }
 
 
-int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int number_of_lines, int file_size)
+int getLines(char* file_adress, size_t* line_lengths, off_t* memory_offsets, int number_of_lines, int file_size)
 {
     off_t line = 0;
     long long line_number = 0;
@@ -170,7 +161,7 @@ int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int
 
     while(TRUE)
     {
-        waiting_result = waitForReaction(file_descriptor);
+        waiting_result = waitForReaction();
         if (waiting_result == WAIT_REACTION_ERROR)
         {
             return GET_LINE_ERROR;
@@ -178,7 +169,7 @@ int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int
         if (waiting_result == FALSE)
         {
             int check = INIT_CHECK;
-            check = printFile(line_lengths, file_offsets);
+            check = printFile(line_lengths, memory_offsets);
             if(check == PRINT_FILE_ERROR)
             {
                 return GET_LINE_ERROR;
@@ -214,7 +205,7 @@ int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int
         } 
         if (line_lengths[line_number] != 0)
         {
-            line = file_offsets[line_number];
+            line = memory_offsets[line_number];
 
             printf_check = printf("%.*s", line_lengths[line_number], line);
             if (printf_check < PRINTF_ERROR)
@@ -227,27 +218,19 @@ int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int
         } 
         
     }
-    
-    int munmap_check = INIT_CHECK;
-    munmap_check = munmap((char*)file_offsets[1], file_size);
-    if (munmap_check == MUNMAP_ERROR)
-    {
-        perror("Can't clean memory");
-        return GET_LINE_ERROR;
-    }
     return SUCCESS;
 }
 
  int main(int argc, char* argv[])
  {
-    off_t file_offsets[TABLE_SIZE]  = {0};
+    off_t memory_offsets[TABLE_SIZE]  = {0};
     size_t line_lengths[TABLE_SIZE]  = {0};
 
     int file_descriptor = INIT_CHECK;
     int number_of_lines = INIT_CHECK;
     struct stat file_info;
     int file_size = 0;
-    
+    char* file_adress = NULL;
     if (argc != 2)
     {
         printf("Usage: a.out f1\n");
@@ -271,7 +254,14 @@ int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int
     }
     file_size = (int)file_info.st_size;
 
-    number_of_lines = fillTable(file_descriptor, line_lengths, file_offsets, file_size);
+    file_adress = mmap(0, file_size, PROT_READ, MAP_SHARED, file_descriptor, 0);    
+    if (file_adress == MAP_FAILED)
+    {
+        perror("Can't map file");
+        return FAIL;
+    }
+
+    number_of_lines = fillTable(file_adress, line_lengths, memory_offsets, file_size);
     
     if (number_of_lines == FILL_TABLE_ERROR)
     {
@@ -290,11 +280,19 @@ int getLines(int file_descriptor, size_t* line_lengths, off_t* file_offsets, int
 
     int get_lines_check = INIT_CHECK;
     
-    get_lines_check = getLines(file_descriptor, line_lengths, file_offsets, number_of_lines, file_size);
+    get_lines_check = getLines(file_adress, line_lengths, memory_offsets, number_of_lines, file_size);
     
     if (get_lines_check == GET_LINE_ERROR)
     {
         printf("Error with printing lines\n");
+        return FAIL;
+    }
+
+    int munmap_check = INIT_CHECK;
+    munmap_check = munmap(file_adress, file_size);
+    if (munmap_check == MUNMAP_ERROR)
+    {
+        perror("Can't clean memory");
         return FAIL;
     }
     return SUCCESS;
