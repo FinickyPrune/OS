@@ -7,13 +7,14 @@
 #define FORK_ERROR -1
 #define EXEC_ERROR -1
 #define WAIT_ERROR -1
-#define CHECK -1
+#define CHECK_INIT -1
 #define CHILD_PROCESS 0
 #define PARENT_PROCESS 1
+#define END_OF_ARGS NULL
 
 int main(int argc, char* argv[])
 {
-    pid_t fork_check = CHECK;
+    pid_t fork_check = CHECK_INIT;
     int status = 0;
     pid_t wait_check = 0;
 
@@ -33,8 +34,8 @@ int main(int argc, char* argv[])
     if (fork_check == CHILD_PROCESS)
     {
         printf("\nI am a new process\nMy PID: %d\nMy PPID:%d\n",getpid(),getppid());
-        int execl_check = CHECK;
-        execl_check = execl("/bin/cat","cat",argv[1], NULL);
+        int execl_check = CHECK_INIT;
+        execl_check = execl("/bin/cat", "cat", argv[1], END_OF_ARGS);
         if(execl_check == EXEC_ERROR)
         {
             perror("Error while openning cat");
@@ -53,7 +54,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    printf("\nWait - ok!\n");
+    printf("\nWait ended.\n");
 
     return EXIT_SUCCESS;
 }

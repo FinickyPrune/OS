@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/resource.h>
 #include <string.h>
 
 #define TRUE 1
@@ -26,7 +27,7 @@
 #define STOP_NUMBER 0
 #define TIMEOUT_SEC 5
 #define TIMEOUT_USEC 0
-#define TABLE_SIZE 256
+#define TABLE_SIZE 1024
 #define CONSOLE_INPUT_SIZE 100
 #define FAIL -1
 #define SUCCESS 0
@@ -104,7 +105,7 @@ int waitForReaction()
     fflush(stdout);
 
     result = select(MAX_DP, &read_descriptors, NULL, NULL, &timeout);
-
+    
     if (result == SELECT_ERROR)
     {
         perror("Select error");
@@ -176,7 +177,6 @@ int getLines(char* file_adress, size_t* line_lengths, off_t* memory_offsets, int
             }
             return SUCCESS;
         }
-
         line_number = getNumber();
 
         if (line_number == GET_NUMBER_ERROR)
@@ -223,6 +223,11 @@ int getLines(char* file_adress, size_t* line_lengths, off_t* memory_offsets, int
 
  int main(int argc, char* argv[])
  {
+    
+    struct rlimit lim;
+
+    getrlimit(RLIMIT_DATA, &lim);
+
     off_t memory_offsets[TABLE_SIZE]  = {0};
     size_t line_lengths[TABLE_SIZE]  = {0};
 
@@ -252,9 +257,10 @@ int getLines(char* file_adress, size_t* line_lengths, off_t* memory_offsets, int
         perror("Can't get file information");
         return FAIL;
     }
-    file_size = (int)file_info.st_size;
+    file_size = (long)file_info.st_size;
 
     file_adress = mmap(0, file_size, PROT_READ, MAP_SHARED, file_descriptor, 0);    
+
     if (file_adress == MAP_FAILED)
     {
         perror("Can't map file");

@@ -7,7 +7,7 @@
  
  #define FAIL -1
  #define SUCCESS 0
- #define CHECK 0
+ #define CHECK_INIT 0
  #define OPEN_ERROR -1
  #define FCNTL_ERROR -1
  #define LOCK_ERROR -1
@@ -44,7 +44,7 @@ int try_open_editor(const char* file_name)
         return OPEN_EDITOR_ERROR;
     }
 
-    int system_check = CHECK; 
+    int system_check = CHECK_INIT; 
     system_check = system(command);
     if (system_check == SYSTEM_ERROR)
     {
@@ -59,7 +59,7 @@ int try_open_editor(const char* file_name)
 
 int set_remove_lock(struct flock* lock, int file_descriptor, char* file_name)
 {
-    int fcntl_check = CHECK;
+    int fcntl_check = CHECK_INIT;
     lock->l_type = F_WRLCK;
  
     printf("Setting lock\n");
@@ -74,7 +74,7 @@ int set_remove_lock(struct flock* lock, int file_descriptor, char* file_name)
 
     char enter_symbol = getchar();
     
-    int check = CHECK;
+    int check = CHECK_INIT;
     check = try_open_editor(file_name);
     if (check == OPEN_EDITOR_ERROR)
     {
@@ -103,9 +103,9 @@ int set_remove_lock(struct flock* lock, int file_descriptor, char* file_name)
     lock.l_start = 0;
     lock.l_len = 0;
 
-    int file_descriptor = CHECK;
-    int lock_check = CHECK;
-    int close_check = CHECK;
+    int file_descriptor = CHECK_INIT;
+    int lock_check = CHECK_INIT;
+    int close_check = CHECK_INIT;
 
     if (argc != 2)
     {
