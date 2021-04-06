@@ -73,6 +73,11 @@ int fillTable(char* file_adress, size_t* line_lengths, off_t* memory_offsets, in
         {
             memory_offsets[memory_offset_index] = (off_t)(current_offset - line_lengths[current_line_index]);
             current_line_index++;
+            if (current_line_index >= TABLE_SIZE)
+            {
+                printf("%s", "File larger than tables.\n");
+                return FILL_TABLE_ERROR;
+            }
             memory_offset_index++;
         }
     }
@@ -223,11 +228,6 @@ int getLines(char* file_adress, size_t* line_lengths, off_t* memory_offsets, int
 
  int main(int argc, char* argv[])
  {
-    
-    struct rlimit lim;
-
-    getrlimit(RLIMIT_DATA, &lim);
-
     off_t memory_offsets[TABLE_SIZE]  = {0};
     size_t line_lengths[TABLE_SIZE]  = {0};
 
@@ -271,7 +271,7 @@ int getLines(char* file_adress, size_t* line_lengths, off_t* memory_offsets, int
     
     if (number_of_lines == FILL_TABLE_ERROR)
     {
-        printf("Error with filling the table");
+        printf("Error with filling the table\n");
         return FAIL;
     }
     
@@ -280,7 +280,7 @@ int getLines(char* file_adress, size_t* line_lengths, off_t* memory_offsets, int
 
     if (close_check == CLOSE_ERROR)
     {
-        perror("Error with closing the file");
+        perror("Error with closing the file\n");
         return FAIL;
     }
 
