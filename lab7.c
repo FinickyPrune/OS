@@ -272,6 +272,13 @@ int getLines(char* file_adress, size_t* line_lengths, off_t* memory_offsets, int
     if (number_of_lines == FILL_TABLE_ERROR)
     {
         printf("Error with filling the table\n");
+        int munmap_check = INIT_CHECK;
+        munmap_check = munmap(file_adress, file_size);
+        if (munmap_check == MUNMAP_ERROR)
+        {
+            perror("Can't clean memory");
+            return FAIL;
+        }
         return FAIL;
     }
     
@@ -281,6 +288,13 @@ int getLines(char* file_adress, size_t* line_lengths, off_t* memory_offsets, int
     if (close_check == CLOSE_ERROR)
     {
         perror("Error with closing the file\n");
+        int munmap_check = INIT_CHECK;
+        munmap_check = munmap(file_adress, file_size);
+        if (munmap_check == MUNMAP_ERROR)
+        {
+            perror("Can't clean memory");
+            return FAIL;
+        }
         return FAIL;
     }
 
@@ -291,6 +305,13 @@ int getLines(char* file_adress, size_t* line_lengths, off_t* memory_offsets, int
     if (get_lines_check == GET_LINE_ERROR)
     {
         printf("Error with printing lines\n");
+        int munmap_check = INIT_CHECK;
+        munmap_check = munmap(file_adress, file_size);
+        if (munmap_check == MUNMAP_ERROR)
+        {
+            perror("Can't clean memory");
+            return FAIL;
+        }
         return FAIL;
     }
 
