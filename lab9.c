@@ -7,7 +7,11 @@
 #define FORK_ERROR -1
 #define EXEC_ERROR -1
 #define WAIT_ERROR -1
+<<<<<<< Updated upstream
 #define CHECK_INIT -1
+=======
+#define CHECK_INIT -2
+>>>>>>> Stashed changes
 #define CHILD_PROCESS 0
 #define PARENT_PROCESS 1
 #define END_OF_ARGS NULL
@@ -36,6 +40,10 @@ int main(int argc, char* argv[])
         printf("\nI am a new process\nMy PID: %d\nMy PPID:%d\n",getpid(),getppid());
         int execl_check = CHECK_INIT;
         execl_check = execl("/bin/cat", "cat", argv[1], END_OF_ARGS);
+<<<<<<< Updated upstream
+=======
+        
+>>>>>>> Stashed changes
         if(execl_check == EXEC_ERROR)
         {
             perror("Error while openning cat");
