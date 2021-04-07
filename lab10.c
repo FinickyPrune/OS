@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
    
-    int status_of_child = WEXITSTATUS(status); 
-    printf("Exit status of a child process: %d\n", status_of_child);
+    int exit_status = WEXITSTATUS(status); 
+    printf("Exit status of a child process: %d\n", exit_status);
     return EXIT_SUCCESS;
 }
