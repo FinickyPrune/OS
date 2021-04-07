@@ -8,6 +8,7 @@
 #define EXEC_ERROR -1
 #define WAIT_ERROR -1
 #define CHECK_INIT 0
+#define NO_STATUS 0
 #define CHILD_PROCESS 0
 #define PARENT_PROCESS 1
 #define END_OF_ARGS NULL
@@ -15,7 +16,7 @@
 int main(int argc, char* argv[])
 {
     pid_t fork_check = CHECK_INIT;
-    int status = 0;
+    int status = NO_STATUS;
     pid_t wait_check = CHECK_INIT;
 
     if (argc != 2)
