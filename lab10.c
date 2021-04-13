@@ -9,6 +9,7 @@
 #define WAIT_ERROR -1
 #define CHECK_INIT 0
 #define CHILD_PROCESS 0
+#define NO_ARGUMENT NULL
 
 int main(int argc, char* argv[])
 {
@@ -25,6 +26,11 @@ int main(int argc, char* argv[])
     }
     if (fork_check == CHILD_PROCESS)
     {
+        if (argv[1] == NO_ARGUMENT)
+        {
+            printf("\n%s\n", "No command to pass to execvp.");
+        }
+        
         execvp_check = execvp(argv[1], &argv[1]); 
         if(execvp_check == EXEC_ERROR)
         {
@@ -32,8 +38,6 @@ int main(int argc, char* argv[])
             return EXIT_FAILURE;
         }
     }
-
-    
 
     wait_check = wait(&status);
     if ( wait_check == WAIT_ERROR)
