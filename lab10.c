@@ -9,7 +9,7 @@
 #define WAIT_ERROR -1
 #define CHECK_INIT 0
 #define CHILD_PROCESS 0
-#define NO_ARGUMENT NULL
+#define NUM_OF_ARGS 2
 
 int main(int argc, char* argv[])
 {
@@ -18,6 +18,12 @@ int main(int argc, char* argv[])
     pid_t wait_check = CHECK_INIT;
     int execvp_check = CHECK_INIT;
 
+    if (argc < NUM_OF_ARGS)
+    {
+        printf("%s\n", "Usage: a.out f1 /f2 ... fn/");
+        return EXIT_FAILURE;
+    }
+        
     fork_check = fork();
     if (fork_check == FORK_ERROR)
     {
@@ -26,11 +32,6 @@ int main(int argc, char* argv[])
     }
     if (fork_check == CHILD_PROCESS)
     {
-        if (argv[1] == NO_ARGUMENT)
-        {
-            printf("\n%s\n", "No command to pass to execvp.");
-        }
-        
         execvp_check = execvp(argv[1], &argv[1]); 
         if(execvp_check == EXEC_ERROR)
         {
@@ -47,6 +48,6 @@ int main(int argc, char* argv[])
     }
    
     int exit_status = WEXITSTATUS(status); 
-    printf("Exit status of a child process: %d\n", exit_status);
+    printf("Exit status: %d\n", exit_status);
     return EXIT_SUCCESS;
 }
