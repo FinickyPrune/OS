@@ -41,8 +41,6 @@ int main(int argc, char* argv[], char* envp[]){
         return EXIT_FAILURE;
     }  
 
-    printf("\n%d\n%d\n", envp, environ);
-
     int execvpe_check = INIT_CHECK;
     execvpe_check = execvpe(argv[1], &argv[1], envp);
     if (execvpe_check == EXEC_ERROR)
