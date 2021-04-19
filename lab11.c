@@ -31,8 +31,6 @@ int main(int argc, char* argv[], char* envp[]){
         return EXIT_FAILURE;
     }
   
-    printf("\n%d\n%d\n", envp, environ);
-
     int putenv_check = INIT_CHECK;
     putenv_check = putenv("TZ=America/Los_Angeles");
     if (putenv_check >= PUTENV_ERROR)
