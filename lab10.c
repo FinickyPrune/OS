@@ -47,7 +47,22 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
    
-    int exit_status = WEXITSTATUS(status); 
-    printf("Exit status: %d\n", exit_status);
-    return EXIT_SUCCESS;
+    if (WIFEXITED(status))
+    {
+        int exit_status = WEXITSTATUS(status); 
+        printf("Exit status: %d\n", exit_status);
+        return EXIT_SUCCESS;
+    }
+    
+    if (WIFSIGNALED(status))
+    {
+        int signal_number = WTERMSIG(status); 
+        printf("Terminated by signal. Signal number: %d\n", signal_number);
+        if (WCOREDUMP(status))
+        {
+            printf("Core-file was created.\n");
+        }
+        return EXIT_SUCCESS;
+    }
+
 }
