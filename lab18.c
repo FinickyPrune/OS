@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+#include <libgen.h>
 
 #define MAX_TIME_LENGTH 128
 #define LSTAT_ERROR -1
@@ -30,6 +31,8 @@ int print_directory_info(char* pathname)
     int strftime_check = CHECK_INIT;
     int lstat_check = CHECK_INIT;   
     
+    char* filename = basename(pathname);
+
     lstat_check = lstat(pathname, &file_stat);
     if (lstat_check == LSTAT_ERROR) 
     {
@@ -51,14 +54,14 @@ int print_directory_info(char* pathname)
         return PRINT_INFO_FAILURE;
     }
 
-    timezone = localtime(&(file_stat.st_ctime));
+    timezone = localtime(&(file_stat.st_mtime));
     if (timezone == LOCALTIME_ERROR)
     {
         perror("Can't get time info");
         return PRINT_INFO_FAILURE;
     }
 
-    strftime_check = strftime(date_time_info, MAX_TIME_LENGTH, "%e %b %H:%M", timezone);
+    strftime_check = strftime(date_time_info, MAX_TIME_LENGTH, "%b %e %H:%M", timezone);
     if (strftime_check == BUFFER_OVERFLOW)
     {
         printf("strftime buffer overflow\n");
@@ -85,9 +88,9 @@ int print_directory_info(char* pathname)
     mask[8] = (file_stat.st_mode & S_IWOTH) ? 'w' : '-';
     mask[9] = (file_stat.st_mode & S_IXOTH) ? 'x' : '-';
 
-    printf("%s\t%d", mask, file_stat.st_nlink);
-    printf("\t%s\t%s", owner->pw_name, owner_group->gr_name);
-    printf("\t%lu\t%s\t%s\n", file_stat.st_size, date_time_info, pathname);
+    printf("%s   %d", mask, file_stat.st_nlink);
+    printf(" %s %s", owner->pw_name, owner_group->gr_name);
+    printf("\t%lu\t%s %s\n", file_stat.st_size, date_time_info, filename);
     
     return PRINT_INFO_SUCCESS;
 }
