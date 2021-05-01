@@ -88,10 +88,16 @@ int print_directory_info(char* pathname)
     mask[8] = (file_stat.st_mode & S_IWOTH) ? 'w' : '-';
     mask[9] = (file_stat.st_mode & S_IXOTH) ? 'x' : '-';
 
-    printf("%s   %d", mask, file_stat.st_nlink);
-    printf(" %s %s", owner->pw_name, owner_group->gr_name);
-    printf("\t%lu\t%s %s\n", file_stat.st_size, date_time_info, filename);
-    
+    printf("%s   %d %s %s\t%lu\t%s %s\n", 
+            
+        mask, 
+        file_stat.st_nlink, 
+        owner->pw_name, 
+        owner_group->gr_name, 
+        file_stat.st_size, 
+        date_time_info, 
+        filename);
+
     return PRINT_INFO_SUCCESS;
 }
 
