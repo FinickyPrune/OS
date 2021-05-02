@@ -18,8 +18,6 @@
 #define BUFFER_OVERFLOW 0
 #define END_OF_ARGS NULL
 
-const char* default_args[] = { ".", END_OF_ARGS };
-
 int print_directory_info(char* pathname)
 {
     char mask[11] = { '\0' };
@@ -43,34 +41,34 @@ int print_directory_info(char* pathname)
     owner = getpwuid(file_stat.st_uid);
     if (owner == GETPWUID_ERROR)
     {
-        perror("Can't get user's id");
+        fprintf(stderr, "Can't get user's name");
         return PRINT_INFO_FAILURE;
     }
     
     owner_group = getgrgid(file_stat.st_gid);
     if (owner_group == GETGRGID_ERROR)
     {
-        perror("Can't get group's id");
+        fprintf(stderr, "Can't get group's name");
         return PRINT_INFO_FAILURE;
     }
 
     timezone = localtime(&(file_stat.st_mtime));
     if (timezone == LOCALTIME_ERROR)
     {
-        perror("Can't get time info");
+        fprintf(strerr, "Can't get time info");
         return PRINT_INFO_FAILURE;
     }
 
     strftime_check = strftime(date_time_info, MAX_TIME_LENGTH, "%b %e %H:%M", timezone);
     if (strftime_check == BUFFER_OVERFLOW)
     {
-        printf("strftime buffer overflow\n");
+        fprintf(stderr, "strftime buffer overflow\n");
         return PRINT_INFO_FAILURE;
     }
 
     if      (S_ISDIR(file_stat.st_mode)) { mask[0] = 'd'; }
     else if (S_ISREG(file_stat.st_mode)) { mask[0] = '-'; }
-    else                                  { mask[0] = '?'; }
+    else                                 { mask[0] = '?'; }
 
     mask[1] = (file_stat.st_mode & S_IRUSR) ? 'r' : '-';
     mask[2] = (file_stat.st_mode & S_IWUSR) ? 'w' : '-';
@@ -103,6 +101,7 @@ int print_directory_info(char* pathname)
 
 int main(int argc, char** argv)
 {
+    char* default_args[] = { ".", END_OF_ARGS };
     char** files_in_directory;
 
     if (argc < 2) 
