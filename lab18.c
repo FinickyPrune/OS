@@ -55,7 +55,7 @@ int print_directory_info(char* pathname)
     timezone = localtime(&(file_stat.st_mtime));
     if (timezone == LOCALTIME_ERROR)
     {
-        fprintf(strerr, "Can't get time info");
+        fprintf(stderr, "Can't get time info");
         return PRINT_INFO_FAILURE;
     }
 
